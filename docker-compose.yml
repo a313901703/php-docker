@@ -448,32 +448,6 @@ services:
         - frontend
         - backend
 
-### Blackfire ########################################
-    blackfire:
-      image: blackfire/blackfire
-      environment:
-        - BLACKFIRE_SERVER_ID=${BLACKFIRE_SERVER_ID}
-        - BLACKFIRE_SERVER_TOKEN=${BLACKFIRE_SERVER_TOKEN}
-      depends_on:
-        - php-fpm
-      networks:
-        - backend
-
-### Minio ################################################
-    minio:
-      build: ./minio
-      volumes:
-        - ${DATA_PATH_HOST}/minio/data:/export
-        - ${DATA_PATH_HOST}/minio/config:/root/.minio
-      ports:
-        - "${MINIO_PORT}:9000"
-      environment:
-        - MINIO_ACCESS_KEY=access
-        - MINIO_SECRET_KEY=secretkey
-      networks:
-        - frontend
-        - backend
-
 ### MySQL ################################################
     mysql:
       build:
@@ -494,55 +468,7 @@ services:
       networks:
         - backend
 
-### MariaDB ##############################################
-    mariadb:
-      build:
-        context: ./mariadb
-        args:
-          - http_proxy
-          - https_proxy
-          - no_proxy
-          - MARIADB_VERSION=${MARIADB_VERSION}
-      volumes:
-        - ${DATA_PATH_HOST}/mariadb:/var/lib/mysql
-        - ${MARIADB_ENTRYPOINT_INITDB}:/docker-entrypoint-initdb.d
-      ports:
-        - "${MARIADB_PORT}:3306"
-      environment:
-        - TZ=${WORKSPACE_TIMEZONE}
-        - MYSQL_DATABASE=${MARIADB_DATABASE}
-        - MYSQL_USER=${MARIADB_USER}
-        - MYSQL_PASSWORD=${MARIADB_PASSWORD}
-        - MYSQL_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
-      networks:
-        - backend
-
-### Neo4j ################################################
-    neo4j:
-      ports:
-          - '7401:7474'
-          - '7402:7687'
-      environment:
-          - NEO4J_AUTH=none
-      volumes:
-          - ${DATA_PATH_HOST}/neo4j/data:/data
-          - ${DATA_PATH_HOST}/neo4j/logs:/logs
-      image: 'neo4j:latest'
-      networks:
-        - backend
-
-### MongoDB ##############################################
-    mongo:
-      build: ./mongo
-      ports:
-        - "${MONGODB_PORT}:27017"
-      volumes:
-        - ${DATA_PATH_HOST}/mongo:/data/db
-        - ${DATA_PATH_HOST}/mongo_config:/data/configdb
-      networks:
-        - backend
-
-  ### Redis ################################################
+### Redis ################################################
     redis:
       build: ./redis
       volumes:
@@ -557,17 +483,6 @@ services:
       build: ./redis-cluster
       ports:
         - "${REDIS_CLUSTER_PORT_RANGE}:7000-7005"
-      networks:
-        - backend
-
-### ZooKeeper #########################################
-    zookeeper:
-      build: ./zookeeper
-      volumes:
-        - ${DATA_PATH_HOST}/zookeeper/data:/data
-        - ${DATA_PATH_HOST}/zookeeper/datalog:/datalog
-      ports:
-        - "${ZOOKEEPER_PORT}:2181"
       networks:
         - backend
 
