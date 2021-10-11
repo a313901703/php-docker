@@ -273,7 +273,7 @@ services:
       links:
         - docker-in-docker
 ### PHP-FPM-56 ##############################################
-    php-fpm:
+    php-fpm-56:
       build:
         context: ./php-fpm-56
         args:
