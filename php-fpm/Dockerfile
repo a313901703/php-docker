@@ -327,7 +327,7 @@ RUN set -eux; \
   elif [ $(php -r "echo PHP_VERSION_ID - PHP_RELEASE_VERSION;") = "70100" ]; then \
   pecl install swoole-4.5.11; \
   else \
-  pecl install -D 'enable-openssl="yes" enable-http2="yes" enable-mysqlnd="yes" enable-swoole-curl="yes"' swoole-4.6.6; \
+  pecl install swoole; \
   fi; \
   docker-php-ext-enable swoole; \
   php -m | grep -q 'swoole'; \
