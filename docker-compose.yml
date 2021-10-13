@@ -442,6 +442,8 @@ services:
         - "${VARNISH_BACKEND_PORT}:81"
         - "8090:8090"
         - "8091:8091"
+        - "8092:8092"
+        - "8099:8099"
       depends_on:
         - php-fpm
       networks:
