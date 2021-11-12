@@ -16,8 +16,10 @@
 #     mysql -u root -p < /docker-entrypoint-initdb.d/createdb.sql
 #
 
-#CREATE DATABASE IF NOT EXISTS `dev_db_1` COLLATE 'utf8_general_ci' ;
-#GRANT ALL ON `dev_db_1`.* TO 'default'@'%' ;
+CREATE DATABASE IF NOT EXISTS `coffee` COLLATE 'utf8_general_ci' ;
+GRANT ALL ON `coffee`.* TO 'developer'@'%' identified by 'abc@1234';
+GRANT ALL ON `coffee`.* TO 'developer'@'172.19.0.%' identified by 'abc@1234';
+GRANT ALL ON `coffee`.* TO 'developer'@'172.18.0.%' identified by 'abc@1234';
 
 #CREATE DATABASE IF NOT EXISTS `dev_db_2` COLLATE 'utf8_general_ci' ;
 #GRANT ALL ON `dev_db_2`.* TO 'default'@'%' ;
