@@ -559,7 +559,7 @@ RUN set -eux; \
   elif [ $(php -r "echo PHP_VERSION_ID - PHP_RELEASE_VERSION;") = "70100" ]; then \
   echo '' | pecl -q install swoole-4.5.11; \
   else \
-  printf "no\nyes\nyes\nno\nyes\nyes" | pecl -q install swoole; \
+  printf "no\nyes\nyes\nno\nyes\nyes" | pecl -q install swoole-4.8.5; \
   fi; \
   echo "extension=swoole.so" >> /etc/php/${LARADOCK_PHP_VERSION}/mods-available/swoole.ini; \
   ln -s /etc/php/${LARADOCK_PHP_VERSION}/mods-available/swoole.ini /etc/php/${LARADOCK_PHP_VERSION}/cli/conf.d/20-swoole.ini; \
@@ -1133,8 +1133,8 @@ RUN if [ ${INSTALL_PYTHON} = true ]; then \
   && curl https://bootstrap.pypa.io/pip/2.7/get-pip.py -o get-pip.py  \
   && python get-pip.py  \
   && rm get-pip.py  \
-  && python -m pip install --upgrade pip  \
-  && python -m pip install --upgrade virtualenv \
+  && python -m pip install -i http://mirrors.aliyun.com/pypi/simple/ --upgrade pip  \
+  && python -m pip install -i http://mirrors.aliyun.com/pypi/simple/ --upgrade virtualenv \
   ;fi
 
 ###########################################################################
@@ -1148,8 +1148,8 @@ RUN if [ ${INSTALL_PYTHON3} = true ]; then \
   && curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py  \
   && python3 get-pip.py  \
   && rm get-pip.py  \
-  && python3 -m pip install --upgrade --force-reinstall pip  \
-  && python3 -m pip install --upgrade virtualenv \
+  && python3 -m pip install -i http://mirrors.aliyun.com/pypi/simple/ --upgrade --force-reinstall pip  \
+  && python3 -m pip install -i http://mirrors.aliyun.com/pypi/simple/ --upgrade virtualenv \
   ;fi
 
 ###########################################################################
@@ -1174,7 +1174,7 @@ ARG INSTALL_SUPERVISOR=false
 
 RUN if [ ${INSTALL_SUPERVISOR} = true ]; then \
   if [ ${INSTALL_PYTHON} = true ]; then \
-  python -m pip install --upgrade supervisor && \
+  python -m pip install -i http://mirrors.aliyun.com/pypi/simple/ --upgrade supervisor && \
   echo_supervisord_conf > /etc/supervisord.conf && \
   sed -i 's/\;\[include\]/\[include\]/g' /etc/supervisord.conf && \
   sed -i 's/\;files\s.*/files = supervisord.d\/*.conf/g' /etc/supervisord.conf \
