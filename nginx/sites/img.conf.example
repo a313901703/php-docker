@@ -1,0 +1,17 @@
+server {
+    listen 80;
+    listen [::]:80;
+
+    server_name yourhosts;
+    root        /var/www/upload/images;
+
+    error_log /var/www/logs/img.error.log;
+    access_log /var/www/logs/img.access.log;
+
+    location ~* \.(js|css|map|png|jpg|jpeg|gif|ico|ttf|woff2|woff)$ {
+        expires       30d;
+        # root  /path/to/your-project/static/;
+        # log_not_found off;
+        access_log    off;
+    }
+}
