@@ -544,7 +544,6 @@ services:
     #     - mongo
 
 
-
 ### DOCKER-REGISTRY ################################################
     # docker-registry:
     #   build:
@@ -737,3 +736,21 @@ services:
     #     backend:
     #       aliases:
     #         - fetchmail
+
+
+### GOLANG ######
+    golang:                                # 自定义容器名称
+      build:
+        context: ./golang                  # 指定构建使用的 Dockerfile 文件
+      environment:                         # 设置环境变量
+        - TZ=${WORKSPACE_TIMEZONE}
+      volumes:                             # 设置挂载目录
+        - ${GOLANG_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}  # 引用 .env 配置中 CODE_PATH_HOST 变量，将宿主机上代码存放的目录挂载到容器中
+      ports:                               # 设置端口映射
+        - "17001:17001"
+        - "17002:17002"
+        - "17003:17004"
+      stdin_open: true                     # 打开标准输入，可以接受外部输入
+      tty: true
+      networks:
+        - backend
