@@ -303,7 +303,7 @@ ARG INSTALL_XDEBUG=false
 RUN if [ ${INSTALL_XDEBUG} = true ]; then \
   # Install the xdebug extension
   if [ $(php -r "echo PHP_MAJOR_VERSION;") = "8" ]; then \
-  pecl install xdebug-3.0.0; \
+  pecl install xdebug-3.3.0; \
   else \
   if [ $(php -r "echo PHP_MAJOR_VERSION;") = "5" ]; then \
   pecl install xdebug-2.5.5; \
@@ -432,24 +432,49 @@ RUN if [ ${INSTALL_PHPREDIS} = true ]; then \
 # Swoole EXTENSION
 ###########################################################################
 
+# ARG INSTALL_SWOOLE=false
+
+# RUN set -eux; \
+#   if [ ${INSTALL_SWOOLE} = true ]; then \
+#   # Install Php Swoole Extension
+#   if   [ $(php -r "echo PHP_VERSION_ID - PHP_RELEASE_VERSION;") = "50600" ]; then \
+#   echo '' | pecl -q install swoole-2.0.10; \
+#   elif [ $(php -r "echo PHP_VERSION_ID - PHP_RELEASE_VERSION;") = "70000" ]; then \
+#   echo '' | pecl -q install swoole-4.3.5; \
+#   elif [ $(php -r "echo PHP_VERSION_ID - PHP_RELEASE_VERSION;") = "70100" ]; then \
+#   echo '' | pecl -q install swoole-4.5.11; \
+#   else \
+#   printf "no\nyes\nyes\nno\nyes\nyes" | pecl -q install swoole-4.8.5; \
+#   fi; \
+#   echo "extension=swoole.so" >> /etc/php/${LARADOCK_PHP_VERSION}/mods-available/swoole.ini; \
+#   ln -s /etc/php/${LARADOCK_PHP_VERSION}/mods-available/swoole.ini /etc/php/${LARADOCK_PHP_VERSION}/cli/conf.d/20-swoole.ini; \
+#   php -m | grep -q 'swoole'; \
+#   fi
+
+###########################################################################
+# Swoole EXTENSION
+###########################################################################
+
 ARG INSTALL_SWOOLE=false
 
 RUN set -eux; \
-  if [ ${INSTALL_SWOOLE} = true ]; then \
-  # Install Php Swoole Extension
-  if   [ $(php -r "echo PHP_VERSION_ID - PHP_RELEASE_VERSION;") = "50600" ]; then \
-  echo '' | pecl -q install swoole-2.0.10; \
-  elif [ $(php -r "echo PHP_VERSION_ID - PHP_RELEASE_VERSION;") = "70000" ]; then \
-  echo '' | pecl -q install swoole-4.3.5; \
-  elif [ $(php -r "echo PHP_VERSION_ID - PHP_RELEASE_VERSION;") = "70100" ]; then \
-  echo '' | pecl -q install swoole-4.5.11; \
-  else \
-  printf "no\nyes\nyes\nno\nyes\nyes" | pecl -q install swoole-4.8.5; \
-  fi; \
-  echo "extension=swoole.so" >> /etc/php/${LARADOCK_PHP_VERSION}/mods-available/swoole.ini; \
-  ln -s /etc/php/${LARADOCK_PHP_VERSION}/mods-available/swoole.ini /etc/php/${LARADOCK_PHP_VERSION}/cli/conf.d/20-swoole.ini; \
-  php -m | grep -q 'swoole'; \
-  fi
+    if [ ${INSTALL_SWOOLE} = true ]; then \
+      # Install Php Swoole Extension
+      if [ $(php -r "echo PHP_MAJOR_VERSION;") = "5" ]; then \
+        echo '' | pecl -q install swoole-2.0.10; \
+      elif [ $(php -r "echo PHP_MAJOR_VERSION;") = "7" ] && [ $(php -r "echo PHP_MINOR_VERSION;") = "0" ]; then \
+        echo '' | pecl -q install swoole-4.3.5; \
+      elif [ $(php -r "echo PHP_MAJOR_VERSION;") = "7" ] && [ $(php -r "echo PHP_MINOR_VERSION;") = "1" ]; then \
+        echo '' | pecl -q install swoole-4.5.11; \
+      elif [ $(php -r "echo PHP_MAJOR_VERSION;") = "7" ]; then \
+        echo '' | pecl -q install swoole-4.8.12; \
+      else \
+        echo '' | pecl -q install swoole; \
+      fi; \
+      echo "extension=swoole.so" >> /etc/php/${LARADOCK_PHP_VERSION}/mods-available/swoole.ini; \
+      ln -s /etc/php/${LARADOCK_PHP_VERSION}/mods-available/swoole.ini /etc/php/${LARADOCK_PHP_VERSION}/cli/conf.d/20-swoole.ini; \
+      php -m | grep -q 'swoole'; \
+    fi
 
 
 ###########################################################################

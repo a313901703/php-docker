@@ -28,10 +28,16 @@ ENV DEBIAN_FRONTEND noninteractive
 ARG CHANGE_SOURCE=false
 RUN if [ ${CHANGE_SOURCE} = true ]; then \
   # Change application source from deb.debian.org to aliyun source
+  touch /etc/apt/sources.list && chmod -R 644 /etc/apt/sources.list && \
   sed -i 's/deb.debian.org/mirrors.aliyun.com/' /etc/apt/sources.list && \
   sed -i 's/security.debian.org/mirrors.aliyun.com/' /etc/apt/sources.list && \
   sed -i 's/security-cdn.debian.org/mirrors.aliyun.com/' /etc/apt/sources.list \
   ;fi
+#     touch /etc/apt/sources.list && chmod -R 644 /etc/apt/sources.list && \
+#     sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.list && \
+#     sed -i 's/security.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.list && \
+#     sed -i 's/security-cdn.debian.org/mirrors.tuna.tsinghua.edu.cn/' /etc/apt/sources.list \
+# ;fi
 
 # always run apt update when start and after add new source list, then clean up at end.
 RUN set -xe; \
@@ -220,7 +226,7 @@ ARG INSTALL_XDEBUG=false
 RUN if [ ${INSTALL_XDEBUG} = true ]; then \
   # Install the xdebug extension
   if [ $(php -r "echo PHP_MAJOR_VERSION;") = "8" ]; then \
-  pecl install xdebug-3.0.0; \
+  pecl install xdebug-3.3.0; \
   else \
   if [ $(php -r "echo PHP_MAJOR_VERSION;") = "5" ]; then \
   pecl install xdebug-2.5.5; \
@@ -291,7 +297,9 @@ ARG INSTALL_PHPREDIS=false
 RUN if [ ${INSTALL_PHPREDIS} = true ]; then \
   # Install Php Redis Extension
   if [ $(php -r "echo PHP_MAJOR_VERSION;") = "5" ]; then \
-  pecl install -o -f redis-4.3.0; \
+    pecl install -o -f redis-4.3.0; \
+  elif [ $(php -r "echo PHP_MAJOR_VERSION;") = "7" ] && { [ $(php -r "echo PHP_MINOR_VERSION;") = "0" ] || [ $(php -r "echo PHP_MINOR_VERSION;") = "1" ] ;}; then \
+      pecl install -o -f redis-5.3.7; \
   else \
   pecl install -o -f redis; \
   fi \
@@ -303,22 +311,41 @@ RUN if [ ${INSTALL_PHPREDIS} = true ]; then \
 # Swoole EXTENSION
 ###########################################################################
 
+# ARG INSTALL_SWOOLE=false
+# RUN set -eux; \
+#   if [ ${INSTALL_SWOOLE} = true ]; then \
+#   # Install Php Swoole Extension
+#   if   [ $(php -r "echo PHP_VERSION_ID - PHP_RELEASE_VERSION;") = "50600" ]; then \
+#   pecl install swoole-2.0.10; \
+#   elif [ $(php -r "echo PHP_VERSION_ID - PHP_RELEASE_VERSION;") = "70000" ]; then \
+#   pecl install swoole-4.3.5; \
+#   elif [ $(php -r "echo PHP_VERSION_ID - PHP_RELEASE_VERSION;") = "70100" ]; then \
+#   pecl install swoole-4.5.11; \
+#   else \
+#   pecl install swoole-4.8.5; \
+#   fi; \
+#   docker-php-ext-enable swoole; \
+#   php -m | grep -q 'swoole'; \
+#   fi
+
 ARG INSTALL_SWOOLE=false
 RUN set -eux; \
-  if [ ${INSTALL_SWOOLE} = true ]; then \
-  # Install Php Swoole Extension
-  if   [ $(php -r "echo PHP_VERSION_ID - PHP_RELEASE_VERSION;") = "50600" ]; then \
-  pecl install swoole-2.0.10; \
-  elif [ $(php -r "echo PHP_VERSION_ID - PHP_RELEASE_VERSION;") = "70000" ]; then \
-  pecl install swoole-4.3.5; \
-  elif [ $(php -r "echo PHP_VERSION_ID - PHP_RELEASE_VERSION;") = "70100" ]; then \
-  pecl install swoole-4.5.11; \
-  else \
-  pecl install swoole-4.8.5; \
-  fi; \
-  docker-php-ext-enable swoole; \
-  php -m | grep -q 'swoole'; \
-  fi
+    if [ ${INSTALL_SWOOLE} = true ]; then \
+      # Install Php Swoole Extension
+      if   [ $(php -r "echo PHP_VERSION_ID - PHP_RELEASE_VERSION;") = "50600" ]; then \
+        pecl install swoole-2.0.10; \
+      elif [ $(php -r "echo PHP_VERSION_ID - PHP_RELEASE_VERSION;") = "70000" ]; then \
+        pecl install swoole-4.3.5; \
+      elif [ $(php -r "echo PHP_VERSION_ID - PHP_RELEASE_VERSION;") = "70100" ]; then \
+        pecl install swoole-4.5.11; \
+      elif [ $(php -r "echo PHP_MAJOR_VERSION;") = "7" ]; then \
+        pecl install swoole-4.8.12; \
+      else \
+        pecl install swoole; \
+      fi; \
+      docker-php-ext-enable swoole; \
+      php -m | grep -q 'swoole'; \
+    fi
 
 ###########################################################################
 # MongoDB:
@@ -327,15 +354,25 @@ RUN set -eux; \
 ARG INSTALL_MONGO=false
 
 RUN if [ ${INSTALL_MONGO} = true ]; then \
-  # Install the mongodb extension
-  if [ $(php -r "echo PHP_MAJOR_VERSION;") = "5" ]; then \
-  pecl install mongo && \
-  docker-php-ext-enable mongo \
-  ;else \
-  pecl install mongodb && \
-  docker-php-ext-enable mongodb \
-  ;fi \
-  ;fi
+    # Install the mongodb extension
+    if [ $(php -r "echo PHP_MAJOR_VERSION;") = "5" ]; then \
+      pecl install mongo; \
+      docker-php-ext-enable mongo; \
+      php -m | grep -oiE '^mongo$'; \
+    else \
+      if [ $(php -r "echo PHP_MAJOR_VERSION;") = "7" ] && [ $(php -r "echo PHP_MINOR_VERSION;") != "4" ]; then \
+        if [ $(php -r "echo PHP_MINOR_VERSION;") = "0" ] || [ $(php -r "echo PHP_MINOR_VERSION;") = "1" ]; then \
+          pecl install mongodb-1.9.2; \
+        else \
+          pecl install mongodb-1.16.2; \
+        fi; \
+      else \
+        pecl install mongodb; \
+      fi; \
+      docker-php-ext-enable mongodb; \
+      php -m | grep -oiE '^mongodb$'; \
+    fi; \
+fi
 
 ###########################################################################
 # Xhprof:
@@ -383,17 +420,21 @@ RUN set -eux; \
 ARG INSTALL_AMQP=false
 
 RUN set -eux; \
-  if [ ${INSTALL_AMQP} = true ]; then \
-  # # Install the amqp extension
-  apt-get -yqq install librabbitmq-dev; \
-  if [ $(php -r "echo PHP_MAJOR_VERSION;") = "8" ]; then \
-  pecl install amqp-1.11.0beta; \
-  else \
-  pecl install amqp; \
-  fi; \
-  docker-php-ext-enable amqp; \
-  php -m | grep -oiE '^amqp$'; \
-  fi
+    if [ ${INSTALL_AMQP} = true ]; then \
+      # # Install the amqp extension
+      apt-get -yqq install librabbitmq-dev; \
+      if [ ${LARADOCK_PHP_VERSION} = "7.3" ] \
+        || [ ${LARADOCK_PHP_VERSION} = "7.2" ] \
+        || [ ${LARADOCK_PHP_VERSION} = "7.1" ] \
+        || [ ${LARADOCK_PHP_VERSION} = "7.0" ] \
+        || [ ${LARADOCK_PHP_VERSION} = "5.6" ]; then \
+        pecl install amqp-1.11.0; \
+      else \
+        pecl install amqp; \
+      fi; \
+      docker-php-ext-enable amqp; \
+      php -m | grep -oiE '^amqp$'; \
+    fi
 
 
 
@@ -563,38 +604,47 @@ ARG INSTALL_MSSQL=false
 
 RUN set -eux; \
   if [ ${INSTALL_MSSQL} = true ]; then \
-  if [ $(php -r "echo PHP_MAJOR_VERSION;") = "5" ]; then \
-  apt-get -yqq install freetds-dev libsybdb5 \
-  && ln -s /usr/lib/x86_64-linux-gnu/libsybdb.so /usr/lib/libsybdb.so \
-  && docker-php-ext-install mssql pdo_dblib \
-  && php -m | grep -q 'mssql' \
-  && php -m | grep -q 'pdo_dblib' \
-  ;else \
-  ###########################################################################
-  # Ref from https://github.com/Microsoft/msphpsql/wiki/Dockerfile-for-adding-pdo_sqlsrv-and-sqlsrv-to-official-php-image
-  ###########################################################################
-  # Add Microsoft repo for Microsoft ODBC Driver 13 for Linux
-  apt-get install -yqq apt-transport-https gnupg \
-  && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
-  && curl https://packages.microsoft.com/config/debian/9/prod.list > /etc/apt/sources.list.d/mssql-release.list \
-  && apt-get update -yqq \
-  && ACCEPT_EULA=Y apt-get install -yqq unixodbc unixodbc-dev libgss3 odbcinst msodbcsql17 locales \
-  && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
-  && ln -sfn /etc/locale.alias /usr/share/locale/locale.alias \
-  && locale-gen \
-  && if [ $(php -r "echo PHP_MAJOR_VERSION;") = "7" ] && [ $(php -r "echo PHP_MINOR_VERSION;") = "2" ]; then \
-  pecl install pdo_sqlsrv-5.8.1 sqlsrv-5.8.1 \
-  ;elif [ $(php -r "echo PHP_MAJOR_VERSION;") = "7" ] && [ $(php -r "echo PHP_MINOR_VERSION;") = "1" ]; then \
-  pecl install pdo_sqlsrv-5.6.1 sqlsrv-5.6.1 \
-  ;elif [ $(php -r "echo PHP_MAJOR_VERSION;") = "7" ] && [ $(php -r "echo PHP_MINOR_VERSION;") = "0" ]; then \
-  pecl install pdo_sqlsrv-5.3.0 sqlsrv-5.3.0 \
-  ;else \
-  pecl install pdo_sqlsrv sqlsrv \
-  ;fi \
-  && docker-php-ext-enable pdo_sqlsrv sqlsrv \
-  && php -m | grep -q 'pdo_sqlsrv' \
-  && php -m | grep -q 'sqlsrv' \
-  ;fi \
+    if [ $(php -r "echo PHP_MAJOR_VERSION;") = "5" ]; then \
+      apt-get -yqq install freetds-dev libsybdb5 \
+      && ln -s /usr/lib/x86_64-linux-gnu/libsybdb.so /usr/lib/libsybdb.so \
+      && docker-php-ext-install mssql pdo_dblib \
+      && php -m | grep -oiE '^mssql$' \
+      && php -m | grep -oiE '^pdo_dblib$' \
+    ;else \
+      ###########################################################################
+      # Ref from https://github.com/Microsoft/msphpsql/wiki/Dockerfile-for-adding-pdo_sqlsrv-and-sqlsrv-to-official-php-image
+      ###########################################################################
+      # Add Microsoft repo for Microsoft ODBC Driver 13 for Linux \
+      apt-get update \
+      && apt-get install -yqq apt-transport-https gnupg lsb-release \
+      && if [ $(php -r "echo PHP_MAJOR_VERSION;") = "8" ] && [ ${LARADOCK_PHP_VERSION} != "8.0" ]; then \
+        curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg \
+      ;else \
+        curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+      ;fi \
+      && curl https://packages.microsoft.com/config/debian/$(lsb_release -rs)/prod.list > /etc/apt/sources.list.d/mssql-release.list \
+      && apt-get update -yqq \
+      && ACCEPT_EULA=Y apt-get install -yqq unixodbc unixodbc-dev libgss3 odbcinst msodbcsql18 locales \
+      && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
+      && ln -sfn /etc/locale.alias /usr/share/locale/locale.alias \
+      && locale-gen \
+      && if [ $(php -r "echo PHP_VERSION_ID - PHP_RELEASE_VERSION;") = "70000" ]; then \
+        pecl install pdo_sqlsrv-5.3.0 sqlsrv-5.3.0 \
+      ;elif [ $(php -r "echo PHP_VERSION_ID - PHP_RELEASE_VERSION;") = "70100" ]; then \
+        pecl install pdo_sqlsrv-5.6.1 sqlsrv-5.6.1 \
+      ;elif [ $(php -r "echo PHP_VERSION_ID - PHP_RELEASE_VERSION;") = "70200" ]; then \
+        pecl install pdo_sqlsrv-5.8.1 sqlsrv-5.8.1 \
+      ;elif [ $(php -r "echo PHP_VERSION_ID - PHP_RELEASE_VERSION;") = "70300" ]; then \
+        pecl install pdo_sqlsrv-5.9.0 sqlsrv-5.9.0 \
+      ;elif [ $(php -r "echo PHP_VERSION_ID - PHP_RELEASE_VERSION;") = "70400" ]; then \
+        pecl install pdo_sqlsrv-5.10.1 sqlsrv-5.10.1 \
+      ;else \
+        pecl install pdo_sqlsrv sqlsrv \
+      ;fi \
+      && docker-php-ext-enable pdo_sqlsrv sqlsrv \
+      && php -m | grep -oiE '^pdo_sqlsrv$' \
+      && php -m | grep -oiE '^sqlsrv$' \
+    ;fi \
   ;fi
 
 ###########################################################################
@@ -1031,7 +1081,7 @@ USER root
 # Clean up
 RUN apt-get clean && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
-  rm /var/log/lastlog /var/log/faillog
+  rm -f /var/log/lastlog /var/log/faillog
 
 # Configure non-root user.
 ARG PUID=1000
