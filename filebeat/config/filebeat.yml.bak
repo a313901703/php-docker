@@ -1,0 +1,71 @@
+
+###################### Filebeat Configuration #########################
+
+
+#============================= Filebeat modules ===============================
+
+filebeat.config.modules:
+  # Glob pattern for configuration loading
+  path: ${path.config}/modules.d/*.yml
+
+  # Set to true to enable config reloading
+  reload.enabled: false
+
+  # Period on which files under path should be checked for changes
+  #reload.period: 10s
+
+#==================== Elasticsearch template setting ==========================
+
+
+#================================ General =====================================
+
+# The name of the shipper that publishes the network data. It can be used to group
+# all the transactions sent by a single shipper in the web interface.
+name: "filebeat_wsl"
+
+tags: ["docker", "wsl"]
+
+#============================= input ===============================
+filebeat.inputs:
+- type: log 
+  paths:
+    - /XXXX
+  fields:
+    php: true
+    module: "XXXX"
+  json.keys_under_root: false
+  json.add_error_key: true
+
+- type: log 
+  paths:
+    - /var/log/nginx/*error.log
+  fields:
+    module: "nginx"
+  json.keys_under_root: false
+  json.add_error_key: true
+
+#================================ ES =====================================
+setup.template.settings:
+  index.number_of_shards: 1
+
+setup.template.overwrite: true
+setup.template.name: "wsl"
+setup.template.pattern: "wsl-*"
+setup.template.enabled: true
+# setup.template.fields: field.yml
+setup.ilm.enabled: false
+
+setup.kibana:
+  host: "kibana:5601"
+ 
+#================================ ES =====================================
+output.elasticsearch:
+  hosts: [ http://elasticsearch:9200 ]
+  username: "elastic"
+  password: ""
+  index: "wsl-%{[fields.module]}"
+  indices:
+    - index: "wsl-xxx"
+      when.equals:
+        fields:
+          module: "xxx"

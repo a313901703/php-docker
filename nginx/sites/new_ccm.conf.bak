@@ -31,5 +31,5 @@ server {
     }
 
     error_log /var/log/nginx/new_ccm_access.log;
-    access_log /var/log/nginx/new_ccm_error.log;
+    access_log /var/log/nginx/new_ccm_error.log elk;
 }
