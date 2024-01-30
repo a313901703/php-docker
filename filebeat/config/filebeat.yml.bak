@@ -41,8 +41,6 @@ filebeat.inputs:
     - /var/log/nginx/*error.log
   fields:
     module: "nginx"
-  json.keys_under_root: false
-  json.add_error_key: true
 
 #================================ ES =====================================
 setup.template.settings:
