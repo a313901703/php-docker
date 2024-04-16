@@ -262,6 +262,12 @@ services:
       ports:
         - "${NGINX_HOST_HTTP_PORT}:80"
         - "${NGINX_HOST_HTTPS_PORT}:443"
+        - "5002:5002"
+        - "5003:5003"
+        - "5004:5004"
+        - "5005:5005"
+        - "5006:5006"
+        - "6001:6001"
       depends_on:
         - php-fpm
       networks:
@@ -285,6 +291,25 @@ services:
         - ${MYSQL_ENTRYPOINT_INITDB}:/docker-entrypoint-initdb.d
       ports:
         - "${MYSQL_PORT}:3306"
+      networks:
+        - backend
+
+### MySQL8 ################################################
+    mysql8:
+      build:
+        context: ./mysql
+        args:
+          - MYSQL_VERSION=8.0.18
+      environment:
+        - MYSQL_DATABASE=${MYSQL_DATABASE}
+        - MYSQL_USER=${MYSQL_USER}
+        - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+        - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+        - TZ=${WORKSPACE_TIMEZONE}
+      volumes:
+        - ${DATA8_PATH_HOST}/mysql:/var/lib/mysql
+      ports:
+        - "3307:3306"
       networks:
         - backend
 
